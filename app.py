@@ -1,8 +1,19 @@
 from flask import Flask, request
+import currencyapicom
+API_KEY="cur_live_9SV4BxZHyszCHWGgrvRgk8Z8VNSBXtfXcJiPPiAi"
 
+client = currencyapicom.Client(API_KEY)
+
+
+def converter(c: str, cs: list):
+    result = client.latest(c, currencies=cs)
+    
+    return result
+print(converter("USD",["UZS"]))
 app = Flask(__name__)
 
 usd = 11380.7 # 1 USD = 11380.7 UZS
+
 
 @app.route('/api/to-usd', methods=['GET'])
 def to_usd():
@@ -24,7 +35,15 @@ def to_usd():
                 "convertedCurrency": "USD"
             }
     """
-    pass
+    params = request.args
+    amount = params.get('amount')
+    print(converter("USD",["UZS"])['data']['UZS']['value'])
+    return {
+                "amount": amount,
+                "currency": "UZS",
+                "converted": round(int(amount)/(converter("USD",["UZS"])['data']['UZS']['value']),2),
+                "convertedCurrency": "USD"
+            }
 
 @app.route('/api/to-uzs', methods=['GET'])
 def to_uzs():
@@ -46,8 +65,14 @@ def to_uzs():
                 "convertedCurrency": "UZS"
             }
     """
-    pass
-    
+    params = request.args
+    amount = params.get('amount')
+    return {
+                "amount": amount,
+                "currency": "USD",
+                "converted": int(amount)*float(converter("USD",["UZS"])['data']['UZS']['value']),
+                "convertedCurrency": "UZS"
+            }
 
 if __name__ == '__main__':
     app.run()    
